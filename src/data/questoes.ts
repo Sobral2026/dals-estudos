@@ -2,7 +2,10 @@ import type { Questao } from "@/lib/types";
 
 const FONTE = "Banco DALS — questão de exemplo";
 
-export const QUESTOES: Questao[] = [
+type CamposCatalogo = "assunto" | "subassunto" | "enamed" | "autoria" | "versao" | "atualizadaEm" | "licenca" | "permiteDownload";
+type QuestaoBase = Omit<Questao, CamposCatalogo>;
+
+const BASE: QuestaoBase[] = [
   {
     id: "q01",
     disciplina: "anatomia",
@@ -368,6 +371,50 @@ export const QUESTOES: Questao[] = [
     acertoTurma: 73,
   },
 ];
+
+/**
+ * Catálogo: dupla classificação (FMC × ENAMED), autoria, versão e licença.
+ * A questão existe uma única vez; as classificações apontam para ela.
+ * Todas as classificações são de EXEMPLO (ver `TAXONOMIA_VALIDADA`).
+ */
+const CATALOGO: Record<string, Pick<Questao, "assunto" | "subassunto" | "enamed"> & { permiteDownload?: boolean }> = {
+  q01: { assunto: "anat-ms", subassunto: "anat-ms-plexo", enamed: { area: "area-basicas", competencia: "comp-fundamentos", habilidade: "hab-correlacao-anatomica", temaClinico: "Trauma de ombro" } },
+  q02: { assunto: "anat-neuro", subassunto: "anat-neuro-meninges", enamed: { area: "area-cirurgia", competencia: "comp-urgencia", habilidade: "hab-correlacao-anatomica", temaClinico: "Traumatismo cranioencefálico" } },
+  q03: { assunto: "fisio-cardio", subassunto: "fisio-cardio-pa", enamed: { area: "area-basicas", competencia: "comp-fundamentos", habilidade: "hab-mecanismo" } },
+  q04: { assunto: "fisio-resp", subassunto: "fisio-resp-acido", enamed: { area: "area-basicas", competencia: "comp-fundamentos", habilidade: "hab-exames", temaClinico: "Intoxicação exógena" } },
+  q05: { assunto: "bioq-carbo", subassunto: "bioq-carbo-pentoses", enamed: { area: "area-basicas", competencia: "comp-fundamentos", habilidade: "hab-mecanismo", temaClinico: "Anemia hemolítica" } },
+  q06: { assunto: "farm-tox", enamed: { area: "area-cirurgia", competencia: "comp-urgencia", habilidade: "hab-farmaco", temaClinico: "Intoxicação exógena" } },
+  q07: { assunto: "farm-cardio", enamed: { area: "area-clinica", competencia: "comp-terapeutica", habilidade: "hab-farmaco", temaClinico: "Hipertensão arterial" } },
+  q08: { assunto: "micro-bact", subassunto: "micro-bact-entericas", enamed: { area: "area-clinica", competencia: "comp-diagnostico", habilidade: "hab-agente", temaClinico: "Diarreia aguda" } },
+  q09: { assunto: "pato-geral", subassunto: "pato-geral-necrose", enamed: { area: "area-basicas", competencia: "comp-fundamentos", habilidade: "hab-mecanismo", temaClinico: "Infarto agudo do miocárdio" } },
+  q10: { assunto: "cardio-sca", enamed: { area: "area-clinica", competencia: "comp-diagnostico", habilidade: "hab-exames", temaClinico: "Síndrome coronariana aguda" }, permiteDownload: false },
+  q11: { assunto: "cardio-ic", enamed: { area: "area-clinica", competencia: "comp-terapeutica", habilidade: "hab-farmaco", temaClinico: "Insuficiência cardíaca" } },
+  q12: { assunto: "pneumo-trauma", enamed: { area: "area-cirurgia", competencia: "comp-urgencia", habilidade: "hab-emergencia", temaClinico: "Pneumotórax hipertensivo" } },
+  q13: { assunto: "endo-dm", enamed: { area: "area-clinica", competencia: "comp-diagnostico", habilidade: "hab-exames", temaClinico: "Diabetes mellitus" }, permiteDownload: false },
+  q14: { assunto: "endo-tireoide", enamed: { area: "area-clinica", competencia: "comp-diagnostico", habilidade: "hab-exames", temaClinico: "Hipotireoidismo" } },
+  q15: { assunto: "infecto-ist", enamed: { area: "area-clinica", competencia: "comp-terapeutica", habilidade: "hab-farmaco", temaClinico: "Sífilis" } },
+  q16: { assunto: "infecto-snc", enamed: { area: "area-clinica", competencia: "comp-diagnostico", habilidade: "hab-agente", temaClinico: "Meningite bacteriana" } },
+  q17: { assunto: "ped-imuno", enamed: { area: "area-coletiva", competencia: "comp-prevencao", habilidade: "hab-vacinas", temaClinico: "Tuberculose" } },
+  q18: { assunto: "go-has", enamed: { area: "area-materno", competencia: "comp-materno", habilidade: "hab-obstetrica", temaClinico: "Pré-eclâmpsia" } },
+};
+
+export const QUESTOES: Questao[] = BASE.map((q) => {
+  const c = CATALOGO[q.id];
+  const permiteDownload = c.permiteDownload ?? true;
+  return {
+    ...q,
+    assunto: c.assunto,
+    subassunto: c.subassunto,
+    enamed: c.enamed,
+    autoria: "Equipe DALS (exemplo)",
+    versao: 1,
+    atualizadaEm: "2026-10-29",
+    licenca: permiteDownload
+      ? "Uso acadêmico DALS — reprodução autorizada"
+      : "Somente resolução online — reprodução não autorizada",
+    permiteDownload,
+  };
+});
 
 const POR_ID = new Map(QUESTOES.map((q) => [q.id, q]));
 

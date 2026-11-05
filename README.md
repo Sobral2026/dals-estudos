@@ -1,57 +1,58 @@
-# DALS Questões — protótipo
+# DALS Estudos — protótipo
 
-Banco de questões de exemplo do **Diretório Acadêmico Luiz Sobral — Medicina FMC**.
-Este é um **protótipo**, não o site definitivo. O modelo funcional foi inspirado na análise do
-Lecturio (`../engenharia-reversa-lecturio.md`), mas a identidade visual e as questões são próprias do DALS.
+Protótipo do **Jornal DALS** (público) e do **DALS Estudos** (área reservada) do
+Diretório Acadêmico Luiz Sobral — Medicina FMC. **Não é o site definitivo.**
+O plano técnico completo está em `docs/plano-dals-estudos-v2.md`.
 
 ## Como rodar
 
 ```bash
 npm install
-npm run dev
+npm run dev      # http://localhost:3000
+npm test         # testes unitários (Vitest)
+npm run lint
+npm run build    # não rode com o "dev" ligado: os dois disputam a pasta .next
 ```
 
-Abra http://localhost:3000.
+## Ambientes e rotas
 
-## Telas
+| Ambiente | Rotas | Acesso |
+|---|---|---|
+| Público — Jornal DALS | `/`, `/jornal`, `/jornal/[slug]`, `/entrar` | Sem login |
+| Reservado — DALS Estudos | `/inicio`, `/questoes`, `/questoes/imprimir`, `/simulado/[id]`, `/simulado/[id]/resultado`, `/biblioteca`, `/biblioteca/enviar`, `/biblioteca/meus-envios`, `/biblioteca/[id]`, `/revisao`, `/desempenho`, `/trilhas` | Exige sessão |
+| Painel editorial | `/painel` | Revisor, editor ou administrador |
 
-| Rota | O que faz |
-|---|---|
-| `/` | Início: concluído, sua nota, média da turma, revisão do dia, trilhas e pontos fracos |
-| `/questoes` | Monta simulado (disciplinas, status, modo tutor/prova, quantidade) e lista seus simulados |
-| `/simulado/[id]` | Resolução: lista numerada, alternativas, confiança 😟/😐/😄, gabarito comentado, reportar erro |
-| `/simulado/[id]/resultado` | Nota, comparação com a turma, revisão questão por questão, refazer erradas |
-| `/revisao` | Revisão espaçada: para hoje / atrasadas / muito atrasadas e nível de domínio |
-| `/desempenho` | Acerto por disciplina × turma, revisão adaptativa, refazer erradas |
-| `/trilhas` | Trilhas em blocos com progresso |
+**Login de demonstração:** `/entrar` não tem senha nem verifica vínculo com a FMC. Você escolhe um papel
+(estudante, colaborador, revisor, editor, administrador) para testar as permissões. A proteção é feita no
+navegador. No site definitivo, ela vai para o servidor e para o banco de dados.
 
-Atalhos na resolução: **A–E** escolhe, **1/2/3** confirma, **← →** navega.
+## O que o protótipo demonstra
+
+- **Dupla classificação:**
+  - Período FMC › disciplina › assunto › subassunto.
+  - ENAMED: área › competência › habilidade › tema clínico.
+  - Dificuldade.
+  - A mesma questão aparece nos dois modelos, sem duplicação.
+  - ⚠️ Todas as listas são **exemplo** (`TAXONOMIA_VALIDADA = false`). Não são a grade oficial da FMC nem a matriz do INEP.
+- **Exportação PDF** (`/questoes/imprimir`): só questões, gabarito separado ou gabarito comentado. Só entram questões com
+  `permiteDownload`. Cada questão traz código, versão, autoria, fonte, licença e referência.
+- **Biblioteca:** busca, filtros e download só de material autorizado. "Enviar material" exige declaração de autoria e autorização.
+- **Fluxo editorial:** Envio → Triagem → Revisão acadêmica → Aprovação → Publicação, com devolução (e reenvio
+  versionado) e retirada sempre justificadas. As regras estão em `src/lib/permissoes.ts`.
+- **Painel:** fluxo editorial, questões, reportes de erro, Jornal (rascunho/publicar/arquivar), papéis e auditoria.
+- **Revisão espaçada e desempenho:** lógica original preservada; desempenho também por competência ENAMED, com recomendações.
 
 ## Armazenamento (protótipo)
 
-Não há banco de dados nem login.
+- **Conteúdo fixo** em `src/data/`: questões, disciplinas, taxonomia, trilhas e conteúdo inicial de exemplo.
+- **Estado** no `localStorage`, chave `dals-questoes:v1` (schema v2), via `src/lib/store.ts`:
+  progresso, revisão, simulados, sessão demo, biblioteca, jornal e auditoria.
+  - A migração do v1 **só acrescenta campos**; o progresso existente é preservado (há teste em `store.test.ts`).
+  - "Apagar meu progresso" (em `/revisao`) apaga só o estudo; biblioteca, jornal e auditoria são mantidos.
+- **Média da turma:** dado **de exemplo** e rotulado assim na interface. Em produção, só valores reais e agregados.
 
-- **Conteúdo** (questões, disciplinas e trilhas) fica em arquivos TypeScript:
-  - `src/data/questoes.ts`: as 18 questões de exemplo
-  - `src/data/disciplinas.ts`: árvore de disciplinas por ciclo
-  - `src/data/trilhas.ts`: trilhas e blocos
-- **Progresso do aluno** (respostas, revisão espaçada, simulados e reportes de erro) fica no
-  **localStorage do navegador**, na chave `dals-questoes:v1`. Toda a leitura e escrita passa por
-  `src/lib/store.ts`.
-  - Cada navegador tem o próprio progresso, que não é compartilhado entre dispositivos.
-  - Limpar os dados do navegador apaga o progresso. Também há o botão "Apagar meu progresso" em `/revisao`.
-  - Os reportes de erro ficam salvos só localmente. No site definitivo, eles vão para o painel da diretoria.
-- **Média da turma** usa o campo `acertoTurma` de cada questão, que hoje é um valor de exemplo.
+## Limitações conhecidas
 
-### Para o site definitivo
-
-Trocar `src/lib/store.ts` por chamadas a um banco (ex.: Supabase) mantendo as mesmas funções
-(`registrarResposta`, `criarSimulado`, `responderNoSimulado`, `finalizarSimulado`, `reportarErro`…).
-Mover as questões para tabelas, com um painel `/admin` para cadastro, e calcular a média da turma
-a partir das respostas reais.
-
-## Adicionar uma questão
-
-Copie um bloco em `src/data/questoes.ts`, troque o `id` (ex.: `q19`) e preencha `disciplina`
-(um id de `disciplinas.ts`), `enunciado`, as 5 `alternativas` com `comentario`, `correta`,
-`explicacao` e, se houver, `referencia`.
+- O gabarito das questões é enviado ao navegador (no protótipo, o modo prova pode ser burlado). A correção no servidor depende do banco.
+- Anexos da biblioteca são validados (PDF/PNG/JPG, até 20 MB), mas só o nome é guardado.
+- Cadastro e edição de questões pelo painel ainda não existem: as questões ficam em `src/data/questoes.ts`.

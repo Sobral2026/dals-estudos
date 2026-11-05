@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { nomeDisciplina } from "@/data/disciplinas";
+import { nomeDisciplina, periodoDaDisciplina } from "@/data/disciplinas";
 import { questaoPorId } from "@/data/questoes";
+import { nomeArea, nomeAssunto, nomeCompetencia, ROTULO_DIFICULDADE } from "@/data/taxonomia";
 import { finalizarSimulado, irParaQuestao, reportarErro, responderNoSimulado, useEstado } from "@/lib/store";
 import type { Confianca, Letra, Questao, Simulado } from "@/lib/types";
+import { videosRelacionados } from "@/lib/videos";
 import { Botao } from "./ui";
 
 const CONFIANCA: { valor: Confianca; emoji: string; rotulo: string; cor: string }[] = [
@@ -135,7 +137,8 @@ function CartaoQuestao({
   const estado = useEstado();
   const resposta = simulado.respostas[questao.id];
   const [selecionada, setSelecionada] = useState<Letra | null>(resposta?.letra ?? null);
-  const [aba, setAba] = useState<"explicacao" | "referencia">("explicacao");
+  const [aba, setAba] = useState<"explicacao" | "referencia" | "videos">("explicacao");
+  const relacionados = videosRelacionados(estado.videos ?? [], questao.disciplina, [questao.assunto, questao.subassunto]);
   const [reportando, setReportando] = useState(false);
   const ultima = numero === simulado.questoes.length;
   const acertou = resposta?.letra === questao.correta;
@@ -173,9 +176,18 @@ function CartaoQuestao({
     <div className="mx-auto max-w-3xl">
       <article className={`rounded-2xl border-2 bg-white shadow-sm ${bordaCartao}`}>
         <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 px-5 py-3 text-xs text-neutral-500">
-          <span className="rounded-md bg-dals-100 px-2 py-0.5 font-bold text-dals-700">{nomeDisciplina(questao.disciplina)}</span>
-          <span>{questao.fonte}</span>
+          <span className="rounded-md bg-dals-100 px-2 py-0.5 font-bold text-dals-700">
+            {periodoDaDisciplina(questao.disciplina)}º período · {nomeDisciplina(questao.disciplina)}
+          </span>
+          <span>
+            {nomeAssunto(questao.assunto)}
+            {questao.subassunto && ` › ${nomeAssunto(questao.subassunto)}`}
+          </span>
           <span className="ml-auto font-semibold">Questão {numero}</span>
+          <span className="basis-full text-[11px]">
+            ENAMED: {nomeArea(questao.enamed.area)} · {nomeCompetencia(questao.enamed.competencia)}
+            {questao.enamed.temaClinico && ` · Tema: ${questao.enamed.temaClinico}`} · Dificuldade: {ROTULO_DIFICULDADE[questao.dificuldade]}
+          </span>
         </div>
 
         <div className="p-5 sm:p-6">
@@ -265,26 +277,46 @@ function CartaoQuestao({
             </div>
             <div className="px-5 pt-4">
               <div className="flex gap-6 border-b border-neutral-200 text-sm font-bold uppercase tracking-wide">
-                {(["explicacao", "referencia"] as const).map((a) => (
+                {(["explicacao", "referencia", "videos"] as const).map((a) => (
                   <button
                     key={a}
                     type="button"
                     onClick={() => setAba(a)}
                     className={`-mb-px border-b-2 pb-2 ${aba === a ? "border-dals-700 text-dals-800" : "border-transparent text-neutral-400"}`}
                   >
-                    {a === "explicacao" ? "Explicação" : "Referência"}
+                    {a === "explicacao" ? "Explicação" : a === "referencia" ? "Referência" : `Vídeos (${relacionados.length})`}
                   </button>
                 ))}
               </div>
               <div className="py-4 text-sm leading-relaxed text-neutral-800">
-                {aba === "explicacao" ? (
+                {aba === "explicacao" && (
                   <>
                     <p className="mb-2 font-bold">Resposta correta: {questao.correta}</p>
                     <p>{questao.explicacao}</p>
                   </>
-                ) : (
-                  <p>{questao.referencia ?? "Sem referência cadastrada para esta questão."}</p>
                 )}
+                {aba === "referencia" && <p>{questao.referencia ?? "Sem referência cadastrada para esta questão."}</p>}
+                {aba === "videos" &&
+                  (relacionados.length === 0 ? (
+                    <p>
+                      Ainda não há vídeos publicados sobre este tema.{" "}
+                      <Link href="/videos/sugerir" target="_blank" className="font-semibold text-dals-700 hover:underline">
+                        Sugerir um vídeo
+                      </Link>
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {relacionados.slice(0, 4).map((v) => (
+                        <li key={v.id}>
+                          {/* Abre em nova aba para não interromper o simulado. */}
+                          <Link href={`/videos/${v.id}`} target="_blank" className="font-semibold text-dals-700 hover:underline">
+                            ▶ {v.titulo}
+                          </Link>
+                          <span className="text-xs text-neutral-500"> · {v.canal}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ))}
               </div>
             </div>
           </>
@@ -294,7 +326,9 @@ function CartaoQuestao({
           <button type="button" onClick={() => setReportando(true)} className="text-xs font-semibold text-neutral-500 hover:text-erro">
             ⚑ Reportar erro
           </button>
-          <span className="ml-auto text-xs text-neutral-400">Turma acerta {questao.acertoTurma}%</span>
+          <span className="ml-auto text-xs text-neutral-400">
+            {questao.autoria} · v{questao.versao} · turma acerta {questao.acertoTurma}% (exemplo)
+          </span>
         </div>
       </article>
 

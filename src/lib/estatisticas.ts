@@ -1,5 +1,6 @@
 import { DISCIPLINAS } from "@/data/disciplinas";
 import { QUESTOES, questaoPorId } from "@/data/questoes";
+import { COMPETENCIAS_ENAMED } from "@/data/taxonomia";
 import { situacaoRevisao } from "./revisao";
 import type { Estado } from "./store";
 import type { Questao, RegistroResposta, Simulado } from "./types";
@@ -37,6 +38,17 @@ export function desempenhoPorDisciplina(estado: Estado) {
     disciplina: d,
     ...resumirQuestoes(
       QUESTOES.filter((q) => q.disciplina === d.id),
+      ultimas,
+    ),
+  }));
+}
+
+export function desempenhoPorCompetencia(estado: Estado) {
+  const ultimas = ultimaRespostaPorQuestao(estado.historico);
+  return COMPETENCIAS_ENAMED.map((c) => ({
+    competencia: c,
+    ...resumirQuestoes(
+      QUESTOES.filter((q) => q.enamed.competencia === c.id),
       ultimas,
     ),
   }));

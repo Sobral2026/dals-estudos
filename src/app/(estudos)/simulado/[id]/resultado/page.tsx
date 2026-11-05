@@ -55,7 +55,7 @@ export default function Resultado() {
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <Estatistica rotulo="Acertos" valor={`${r.acertos}/${r.itens.length}`} detalhe={`${r.respondidas} respondidas`} destaque />
-          <Estatistica rotulo="Média da turma" valor={`${r.mediaTurma}%`} detalhe="nessas questões" />
+          <Estatistica rotulo="Média da turma" valor={`${r.mediaTurma}%`} detalhe="exemplo, nessas questões" />
           <Estatistica rotulo="Tempo" valor={duracao(simulado.inicio, simulado.fim)} detalhe={`modo ${simulado.modo}`} />
         </div>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
@@ -64,6 +64,9 @@ export default function Resultado() {
           </Botao>
           <BotaoLink href="/questoes" variante="secundario">
             Novo simulado
+          </BotaoLink>
+          <BotaoLink href={`/questoes/imprimir?formato=comentado&ids=${simulado.questoes.join(",")}`} variante="secundario">
+            Exportar PDF
           </BotaoLink>
         </div>
       </Cartao>
@@ -96,7 +99,7 @@ export default function Resultado() {
       </Cartao>
 
       <p className="mt-4 text-center text-sm">
-        <Link href="/" className="font-semibold text-dals-700 hover:underline">
+        <Link href="/inicio" className="font-semibold text-dals-700 hover:underline">
           Voltar ao início
         </Link>
       </p>

@@ -158,6 +158,25 @@ export function Checkbox({
   );
 }
 
+export function AvisoExemplo({ children }: { children: React.ReactNode }) {
+  return (
+    <div role="note" className="mb-6 rounded-xl border border-alerta/60 bg-alerta-suave px-4 py-3 text-sm text-neutral-800">
+      {children}
+    </div>
+  );
+}
+
+export function SeloStatus({ texto, tom }: { texto: string; tom: "ok" | "alerta" | "erro" | "info" | "neutro" }) {
+  const cores = {
+    ok: "bg-ok-suave text-ok",
+    alerta: "bg-alerta-suave text-[#8a6100]",
+    erro: "bg-erro-suave text-erro",
+    info: "bg-info-suave text-info",
+    neutro: "bg-neutral-100 text-neutral-600",
+  };
+  return <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-bold ${cores[tom]}`}>{texto}</span>;
+}
+
 export function Carregando() {
   return <div className="py-20 text-center text-sm text-neutral-500">Carregando…</div>;
 }

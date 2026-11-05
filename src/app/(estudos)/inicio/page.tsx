@@ -46,6 +46,9 @@ export default function Inicio() {
           <BotaoLink href="/trilhas" variante="secundario" className="border-white/60 !text-white hover:bg-white/10">
             Ver trilhas
           </BotaoLink>
+          <BotaoLink href="/biblioteca/enviar" variante="secundario" className="border-white/60 !text-white hover:bg-white/10">
+            Enviar resumo
+          </BotaoLink>
         </div>
       </div>
 
@@ -60,7 +63,7 @@ export default function Inicio() {
           <div className="grid gap-3 sm:grid-cols-3">
             <Estatistica rotulo="Concluído" valor={`${geral.conclusao}%`} detalhe={`${geral.respondidas}/${geral.total} respondidas`} />
             <Estatistica rotulo="Sua nota" valor={`${geral.nota}%`} detalhe={`${geral.acertos}/${geral.respondidas} corretas`} destaque />
-            <Estatistica rotulo="Média da turma" valor={`${geral.mediaTurma}%`} detalhe="acerto médio" />
+            <Estatistica rotulo="Média da turma" valor={`${geral.mediaTurma}%`} detalhe="dado de exemplo" />
           </div>
           {montado && geral.respondidas === 0 && (
             <p className="mt-4 rounded-lg bg-dals-50 p-3 text-sm text-dals-800">

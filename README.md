@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DALS Questões — protótipo
 
-## Getting Started
+Banco de questões de exemplo do **Diretório Acadêmico Luiz Sobral — Medicina FMC**.
+Este é um **protótipo**, não o site definitivo. O modelo funcional foi inspirado na análise do
+Lecturio (`../engenharia-reversa-lecturio.md`), mas a identidade visual e as questões são próprias do DALS.
 
-First, run the development server:
+## Como rodar
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Telas
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Rota | O que faz |
+|---|---|
+| `/` | Início: concluído, sua nota, média da turma, revisão do dia, trilhas e pontos fracos |
+| `/questoes` | Monta simulado (disciplinas, status, modo tutor/prova, quantidade) e lista seus simulados |
+| `/simulado/[id]` | Resolução: lista numerada, alternativas, confiança 😟/😐/😄, gabarito comentado, reportar erro |
+| `/simulado/[id]/resultado` | Nota, comparação com a turma, revisão questão por questão, refazer erradas |
+| `/revisao` | Revisão espaçada: para hoje / atrasadas / muito atrasadas e nível de domínio |
+| `/desempenho` | Acerto por disciplina × turma, revisão adaptativa, refazer erradas |
+| `/trilhas` | Trilhas em blocos com progresso |
 
-## Learn More
+Atalhos na resolução: **A–E** escolhe, **1/2/3** confirma, **← →** navega.
 
-To learn more about Next.js, take a look at the following resources:
+## Armazenamento (protótipo)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Não há banco de dados nem login.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Conteúdo** (questões, disciplinas e trilhas) fica em arquivos TypeScript:
+  - `src/data/questoes.ts`: as 18 questões de exemplo
+  - `src/data/disciplinas.ts`: árvore de disciplinas por ciclo
+  - `src/data/trilhas.ts`: trilhas e blocos
+- **Progresso do aluno** (respostas, revisão espaçada, simulados e reportes de erro) fica no
+  **localStorage do navegador**, na chave `dals-questoes:v1`. Toda a leitura e escrita passa por
+  `src/lib/store.ts`.
+  - Cada navegador tem o próprio progresso, que não é compartilhado entre dispositivos.
+  - Limpar os dados do navegador apaga o progresso. Também há o botão "Apagar meu progresso" em `/revisao`.
+  - Os reportes de erro ficam salvos só localmente. No site definitivo, eles vão para o painel da diretoria.
+- **Média da turma** usa o campo `acertoTurma` de cada questão, que hoje é um valor de exemplo.
 
-## Deploy on Vercel
+### Para o site definitivo
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Trocar `src/lib/store.ts` por chamadas a um banco (ex.: Supabase) mantendo as mesmas funções
+(`registrarResposta`, `criarSimulado`, `responderNoSimulado`, `finalizarSimulado`, `reportarErro`…).
+Mover as questões para tabelas, com um painel `/admin` para cadastro, e calcular a média da turma
+a partir das respostas reais.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Adicionar uma questão
+
+Copie um bloco em `src/data/questoes.ts`, troque o `id` (ex.: `q19`) e preencha `disciplina`
+(um id de `disciplinas.ts`), `enunciado`, as 5 `alternativas` com `comentario`, `correta`,
+`explicacao` e, se houver, `referencia`.
